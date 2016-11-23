@@ -76,10 +76,16 @@ update msg post =
     LoadUpdatedPost (Err _) ->
       (post, Cmd.none)
 
+-- this corresponds to the base URL for the blog microservice depending on which
+-- implementation you use (the Reactor one is on port 8080, the Lagom one is on
+-- port 9000)
+baseUrl : String
+baseUrl = "http://localhost:8080/api/blog/"
+
 getBlogPost : String -> Cmd Msg
 getBlogPost id =
   let
-      url = "http://localhost:8080/api/blog/" ++ id
+      url = baseUrl ++ id
       request = Http.get url (blogPostDecoder id)
   in
      Http.send LoadPost request
@@ -94,7 +100,7 @@ blogPostDecoder id =
 addBlogPost : BlogPost -> Cmd Msg
 addBlogPost post =
   let
-      url = "http://localhost:8080/api/blog/"
+      url = baseUrl
       body = encodeBlogPost post
       request = Http.post url body string
   in
@@ -103,7 +109,7 @@ addBlogPost post =
 updateBlogPost : BlogPost -> Cmd Msg
 updateBlogPost post =
   let
-      url = "http://localhost:8080/api/blog/" ++ post.id
+      url = baseUrl ++ post.id
       body = encodeBlogPost post
       request = httpPut url body Http.expectString
   in
