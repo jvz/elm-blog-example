@@ -53,8 +53,8 @@ update msg post =
       ({ post | id = id }, Cmd.none)
     GetPost ->
       (post, getBlogPost post.id)
-    LoadPost (Ok post) ->
-      ({ post | id = post.id }, Cmd.none)
+    LoadPost (Ok loadedPost) ->
+      ({ loadedPost | id = post.id }, Cmd.none)
     LoadPost (Err _) ->
       (post, Cmd.none)
     ChangeTitle title ->
