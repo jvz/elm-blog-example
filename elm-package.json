@@ -1,7 +1,7 @@
 {
     "version": "1.0.0",
     "summary": "Simple Elm example using a blog microservice",
-    "repository": "https://github.com/jvz/elm-blog-example",
+    "repository": "https://github.com/jvz/elm-blog-example.git",
     "license": "Apache",
     "source-directories": [
         "src"
