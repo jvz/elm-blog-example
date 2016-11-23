@@ -49,7 +49,7 @@ update msg post =
     GetPost ->
       (post, getBlogPost post.id)
     LoadPost (Ok content) ->
-      (content, Cmd.none)
+      ({ content | id = post.id }, Cmd.none)
     LoadPost (Err error) ->
       (post, Cmd.none)
     ChangeId id ->
