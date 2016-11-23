@@ -42,7 +42,8 @@ type Msg
   | ChangeBody String
   | AddPost
   | LoadNewPost (Result Http.Error String)
---| UpdatePost
+  | UpdatePost
+  | LoadUpdatedPost (Result Http.Error String)
 
 update : Msg -> BlogPost -> (BlogPost, Cmd Msg)
 update msg post =
@@ -53,7 +54,7 @@ update msg post =
       (post, getBlogPost post.id)
     LoadPost (Ok post) ->
       ({ post | id = post.id }, Cmd.none)
-    LoadPost (Err error) ->
+    LoadPost (Err _) ->
       (post, Cmd.none)
     ChangeTitle title ->
       ({ post | title = title }, Cmd.none)
@@ -65,7 +66,13 @@ update msg post =
       (post, addBlogPost post)
     LoadNewPost (Ok id) ->
       ({ post | id = id }, getBlogPost id)
-    LoadNewPost (Err error) ->
+    LoadNewPost (Err _) ->
+      (post, Cmd.none)
+    UpdatePost ->
+      (post, updateBlogPost post)
+    LoadUpdatedPost (Ok _) ->
+      (post, getBlogPost post.id)
+    LoadUpdatedPost (Err _) ->
       (post, Cmd.none)
 
 getBlogPost : String -> Cmd Msg
@@ -87,19 +94,41 @@ addBlogPost : BlogPost -> Cmd Msg
 addBlogPost post =
   let
       url = "http://localhost:8080/api/blog/"
-      body = Http.jsonBody <| encodeBlogPost post
+      body = encodeBlogPost post
       request = Http.post url body string
   in
      Http.send LoadNewPost request
 
-encodeBlogPost : BlogPost -> Value
+updateBlogPost : BlogPost -> Cmd Msg
+updateBlogPost post =
+  let
+      url = "http://localhost:8080/api/blog/" ++ post.id
+      body = encodeBlogPost post
+      request = httpPut url body Http.expectString
+  in
+     Http.send LoadUpdatedPost request
+
+encodeBlogPost : BlogPost -> Http.Body
 encodeBlogPost post =
-  -- this really looks redundant compared to an automatic json serializer
-  Encode.object
-    [ ("title", Encode.string post.title)
-    , ("author", Encode.string post.author)
-    , ("body", Encode.string post.body)
-    ]
+  Http.jsonBody
+    <| Encode.object
+        [ ("title", Encode.string post.title)
+        , ("author", Encode.string post.author)
+        , ("body", Encode.string post.body)
+        ]
+
+-- it'd be nice if there was an Http.put function
+httpPut : String -> Http.Body -> Http.Expect a -> Http.Request a
+httpPut url body expect =
+  Http.request
+    { method = "PUT"
+    , headers = []
+    , url = url
+    , body = body
+    , expect = expect
+    , timeout = Nothing
+    , withCredentials = False
+    }
 
 -- VIEW
 
@@ -107,8 +136,8 @@ view : BlogPost -> Html Msg
 view post =
   div []
     [ div [ class "get-post" ]
-        [ div [] [ input [ type_ "text", onInput ChangeId, value post.id, placeholder "id" ] [] ]
-        , submitButton "get" GetPost
+        [ input [ type_ "text", onInput ChangeId, value post.id, placeholder "id" ] []
+        , button [ onClick GetPost ] [ text "get post" ]
         ]
     , hr [] []
     , div [ class "view-post" ]
@@ -118,24 +147,15 @@ view post =
         ]
     , hr [] []
     , div [ class "add-post" ]
-        [ h2 [] [ text "Add New Post" ]
+        [ h2 [] [ text "Edit Post" ]
         , div [] [ input [ type_ "text", onInput ChangeTitle, value post.title, placeholder "title" ] [] ]
         , div [] [ input [ type_ "text", onInput ChangeAuthor, value post.author, placeholder "author" ] [] ]
         , textarea [ rows 20, cols 80, onInput ChangeBody ] [ text post.body ]
-        , submitButton "add post" AddPost
+        , div []
+            [ button [ onClick AddPost ] [ text "add post" ]
+            , button [ onClick UpdatePost ] [ text "update post" ]
+            ]
         ]
-    ]
-
-textInput : String -> (String -> Msg) -> Html Msg
-textInput placeholderText msg =
-  div []
-    [ input [ type_ "text", onInput msg, placeholder placeholderText ] []
-    ]
-
-submitButton : String -> Msg -> Html Msg
-submitButton buttonText msg =
-  div []
-    [ button [ onClick msg ] [ text buttonText ]
     ]
 
 parseMarkdown : String -> Html Msg
