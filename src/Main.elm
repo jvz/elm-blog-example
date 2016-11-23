@@ -23,6 +23,12 @@ type alias BlogPost =
   , body : String
   }
 
+-- in our REST API, we don't return the ID in the response body, so we add
+-- this function for convenience
+postContent : String -> String -> String -> BlogPost
+postContent =
+  BlogPost ""
+
 init : (BlogPost, Cmd Msg)
 init =
   (BlogPost "" "" "" "", Cmd.none)
@@ -32,7 +38,7 @@ init =
 
 type Msg
   = GetPost
-  | LoadPost (Result Http.Error PostContent)
+  | LoadPost (Result Http.Error BlogPost)
   | ChangeId String
 --| AddPost
 --| UpdatePost
@@ -43,7 +49,7 @@ update msg post =
     GetPost ->
       (post, getBlogPost post.id)
     LoadPost (Ok content) ->
-      (BlogPost post.id content.title content.author content.body, Cmd.none)
+      (content, Cmd.none)
     LoadPost (Err error) ->
       (post, Cmd.none)
     ChangeId id ->
@@ -57,15 +63,9 @@ getBlogPost id =
   in
      Http.send LoadPost request
 
-type alias PostContent =
-  { title : String
-  , author : String
-  , body : String
-  }
-
-blogPostDecoder : Decoder PostContent
+blogPostDecoder : Decoder BlogPost
 blogPostDecoder =
-  map3 PostContent
+  map3 postContent
     (field "title" string)
     (field "author" string)
     (field "body" string)
