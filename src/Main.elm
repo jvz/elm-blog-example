@@ -6,6 +6,7 @@ import Markdown exposing (toHtml)
 import Http
 import Json.Decode exposing (Decoder, map3, field, string)
 import Json.Encode as Encode exposing (Value)
+import CDN exposing (bootstrap)
 
 
 main =
@@ -134,27 +135,54 @@ httpPut url body expect =
 
 view : BlogPost -> Html Msg
 view post =
-  div []
-    [ div [ class "get-post" ]
-        [ input [ type_ "text", onInput ChangeId, value post.id, placeholder "id" ] []
-        , button [ onClick GetPost ] [ text "get post" ]
-        ]
-    , hr [] []
-    , div [ class "view-post" ]
-        [ h1 [] [ text post.title ]
-        , h2 [] [ text <| "By " ++ post.author ]
-        , article [] [ lazy parseMarkdown post.body ]
-        ]
-    , hr [] []
-    , div [ class "add-post" ]
-        [ h2 [] [ text "Edit Post" ]
-        , div [] [ input [ type_ "text", onInput ChangeTitle, value post.title, placeholder "title" ] [] ]
-        , div [] [ input [ type_ "text", onInput ChangeAuthor, value post.author, placeholder "author" ] [] ]
-        , textarea [ rows 20, cols 80, onInput ChangeBody ] [ text post.body ]
-        , div []
-            [ button [ onClick AddPost ] [ text "add post" ]
-            , button [ onClick UpdatePost ] [ text "update post" ]
+  div [ class "container" ]
+    [ bootstrap.css
+    , bootstrap.theme
+    , div [ class "row" ]
+        [ section [ class "col-md-6" ]
+            [ article [ class "view-post" ]
+                [ header
+                    [ class "page-header"
+                    , style [ ("min-height", "60px") ]
+                    ]
+                    [ h1 [] (formatTitle post)
+                    ]
+                , lazy parseMarkdown post.body
+                ]
+            , div [ class "get-post input-group" ]
+                [ label [ class "input-group-addon" ] [ text "id" ]
+                , input
+                    [ class "form-control"
+                    , type_ "text"
+                    , onInput ChangeId
+                    , value post.id
+                    , placeholder "12345678-1234-1234-1234-1234567890ab"
+                    ] []
+                , span [ class "input-group-btn" ]
+                    [ button [ class "btn btn-default", onClick GetPost ] [ text "get post" ] ]
+                ]
             ]
+        , section [ class "edit-post col-md-6" ]
+            [ h2 [] [ text "Edit Post" ]
+            , input [ class "form-control", type_ "text", onInput ChangeTitle, value post.title, placeholder "title" ] []
+            , input [ class "form-control", type_ "text", onInput ChangeAuthor, value post.author, placeholder "author" ] []
+            , textarea [ rows 20, cols 76, onInput ChangeBody ] [ text post.body ]
+            , div [ class "btn-group" ]
+                [ button [ class "btn btn-default", onClick AddPost ] [ text "add post" ]
+                , button [ class "btn btn-default", onClick UpdatePost ] [ text "update post" ]
+                ]
+            ]
+        ]
+    ]
+
+formatTitle : BlogPost -> List (Html Msg)
+formatTitle post =
+  if String.isEmpty post.title then
+    [ text "" ]
+  else
+    [ text <| post.title ++ " "
+    , small []
+        [ text <| "by " ++ post.author
         ]
     ]
 
