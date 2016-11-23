@@ -1,6 +1,7 @@
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput, onClick)
+import Markdown exposing (toHtml)
 import Http
 import Json.Decode exposing (Decoder, map3, field, string)
 
@@ -83,7 +84,7 @@ view post =
     , div []
         [ h1 [] [ text post.title ]
         , h2 [] [ text <| "By " ++ post.author ]
-        , div [] [ text post.body ]
+        , article [] [ toHtml [] post.body ]
         ]
     ]
 
