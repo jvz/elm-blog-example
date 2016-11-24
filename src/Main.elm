@@ -15,7 +15,7 @@
 -}
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Html.Events exposing (onInput, onClick)
+import Html.Events exposing (onInput, onClick, onSubmit)
 import Html.Lazy exposing (lazy)
 import Markdown exposing (toHtml)
 import Http
@@ -170,17 +170,20 @@ view post =
                     ]
                 , lazy parseMarkdown post.body
                 ]
-            , div [ class "get-post input-group" ]
-                [ label [ class "input-group-addon" ] [ text "id" ]
-                , input
-                    [ class "form-control"
-                    , type_ "text"
-                    , onInput ChangeId
-                    , value post.id
-                    , placeholder "12345678-1234-1234-1234-1234567890ab"
-                    ] []
-                , span [ class "input-group-btn" ]
-                    [ button [ class "btn btn-default", onClick GetPost ] [ text "get post" ] ]
+            , Html.form [ class "get-post", onSubmit GetPost ]
+                [ div [ class "input-group" ]
+                    [ label [ class "input-group-addon", for "blog-id" ] [ text "id" ]
+                    , input
+                        [ class "form-control"
+                        , id "blog-id"
+                        , type_ "text"
+                        , onInput ChangeId
+                        , value post.id
+                        , placeholder "12345678-1234-1234-1234-1234567890ab"
+                        ] []
+                    , span [ class "input-group-btn" ]
+                        [ button [ class "btn btn-default", onClick GetPost ] [ text "get post" ] ]
+                    ]
                 ]
             ]
         , section [ class "edit-post col-md-6" ]
